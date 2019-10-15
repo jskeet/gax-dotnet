@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
+#if !NET45_CHECK
 namespace Google.Api.Gax.Grpc.Tests
 {
     public class PageStreamingTest
@@ -302,3 +303,4 @@ namespace Google.Api.Gax.Grpc.Tests
         }
     }
 }
+#endif

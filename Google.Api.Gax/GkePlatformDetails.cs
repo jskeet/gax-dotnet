@@ -135,7 +135,7 @@ namespace Google.Api.Gax
                 MountInfo = mountInfo
             };
         }
-#elif NET461
+#elif NET461 || NET45
         internal static Task<KubernetesData> LoadKubernetesDataAsync()
         {
             // TODO: See if we can support Kubernetes on .NET 4.6.1

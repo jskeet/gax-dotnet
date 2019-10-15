@@ -43,6 +43,11 @@ namespace Google.Api.Gax.Rest
         }
 
         /// <inheritdoc/>
+        public override CompatibilityPagedAsyncEnumerable<TResponse, TResource> ToCompatibilityPagedAsyncEnumerable() =>
+            new RestCompatibilityPagedAsyncEnumerable<TRequest, TResponse, TResource>(_pages, _pageManager);
+
+#if !NET45
+        /// <inheritdoc/>
         public override IAsyncEnumerable<TResponse> AsRawResponses() => _pages;
 
         /// <inheritdoc/>
@@ -54,17 +59,49 @@ namespace Google.Api.Gax.Rest
         public override IAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken) =>
             new ResourceEnumerator<TRequest, TResource, TResponse>(
                 _pages.GetAsyncEnumerator(cancellationToken), _pageManager, cancellationToken);
+#endif
     }
 
+    internal sealed class RestCompatibilityPagedAsyncEnumerable<TRequest, TResponse, TResource> : CompatibilityPagedAsyncEnumerable<TResponse, TResource>
+        where TRequest : class, IClientServiceRequest<TResponse>
+        where TResponse : class
+    {
+        private readonly ResponseAsyncEnumerable<TRequest, TResponse, TResource> _pages;
+        private readonly IPageManager<TRequest, TResponse, TResource> _pageManager;
+
+        internal RestCompatibilityPagedAsyncEnumerable(
+            ResponseAsyncEnumerable<TRequest, TResponse, TResource> pages,
+            IPageManager<TRequest, TResponse, TResource> pageManager)
+        {
+            _pages = pages;
+            _pageManager = pageManager;
+        }
+
+        /// <inheritdoc/>
+        public override ICompatibilityAsyncEnumerable<TResponse> AsRawResponses() => _pages;
+
+        /// <inheritdoc/>
+        public override Task<Page<TResource>> ReadPageAsync(
+            int pageSize, CancellationToken cancellationToken = default(CancellationToken)) =>
+            _pages.GetCompletePageAsync(pageSize, cancellationToken);
+
+        /// <inheritdoc/>
+        public override ICompatibilityAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+            new ResourceEnumerator<TRequest, TResource, TResponse>(
+                ((ICompatibilityAsyncEnumerable<TResponse>)_pages).GetAsyncEnumerator(cancellationToken), _pageManager, cancellationToken);
+    }
 
     /// <summary>
     /// Class to effectively perform SelectMany on the pages, extracting resources.
     /// This allows us to avoid taking a dependency on System.Linq.Async.
     /// </summary>
-    internal sealed class ResourceEnumerator<TRequest, TResource, TResponse> : IAsyncEnumerator<TResource>
+    internal sealed class ResourceEnumerator<TRequest, TResource, TResponse> : ICompatibilityAsyncEnumerator<TResource>
+#if !NET45
+        , IAsyncEnumerator<TResource>
+#endif
     {
         private readonly CancellationToken _cancellationToken;
-        private readonly IAsyncEnumerator<TResponse> _responseEnumerator;
+        private readonly ICompatibilityAsyncEnumerator<TResponse> _responseEnumerator;
         private readonly IPageManager<TRequest, TResponse, TResource> _pageManager;
 
         public TResource Current { get; private set; }
@@ -72,7 +109,7 @@ namespace Google.Api.Gax.Rest
         private bool _finished;
 
         internal ResourceEnumerator(
-            IAsyncEnumerator<TResponse> responseEnumerator,
+            ICompatibilityAsyncEnumerator<TResponse> responseEnumerator,
             IPageManager<TRequest, TResponse, TResource> pageManager,
             CancellationToken cancellationToken)
         {
@@ -122,7 +159,10 @@ namespace Google.Api.Gax.Rest
     /// <typeparam name="TRequest">The API request type.</typeparam>
     /// <typeparam name="TResponse">The API response type.</typeparam>
     /// <typeparam name="TResource">The resource type contained within the response.</typeparam>
-    internal sealed class ResponseAsyncEnumerable<TRequest, TResponse, TResource> : IAsyncEnumerable<TResponse>
+    internal sealed class ResponseAsyncEnumerable<TRequest, TResponse, TResource> : ICompatibilityAsyncEnumerable<TResponse>
+#if !NET45
+        , IAsyncEnumerable<TResponse>
+#endif
         where TRequest : class, IClientServiceRequest<TResponse>
         where TResponse : class
     {
@@ -136,9 +176,18 @@ namespace Google.Api.Gax.Rest
             _pageManager = GaxPreconditions.CheckNotNull(pageManager, nameof(pageManager));
         }
 
-        /// <inheritdoc />
-        public IAsyncEnumerator<TResponse> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+        internal ResponseAsyncEnumerator GetAsyncEnumerator(CancellationToken cancellationToken) =>
             new ResponseAsyncEnumerator(_requestProvider(), _pageManager, cancellationToken);
+
+        /// <inheritdoc />
+        ICompatibilityAsyncEnumerator<TResponse> ICompatibilityAsyncEnumerable<TResponse>.GetAsyncEnumerator(CancellationToken cancellationToken) =>
+            GetAsyncEnumerator(cancellationToken);
+
+#if !NET45
+        /// <inheritdoc />
+        IAsyncEnumerator<TResponse> IAsyncEnumerable<TResponse>.GetAsyncEnumerator(CancellationToken cancellationToken) =>
+            GetAsyncEnumerator(cancellationToken);
+#endif
 
         internal async Task<Page<TResource>> GetCompletePageAsync(
             int pageSize, CancellationToken cancellationToken = default(CancellationToken))
@@ -169,7 +218,10 @@ namespace Google.Api.Gax.Rest
             return new Page<TResource>(items, nextPageToken);
         }
 
-        private class ResponseAsyncEnumerator : IAsyncEnumerator<TResponse>
+        internal class ResponseAsyncEnumerator : ICompatibilityAsyncEnumerator<TResponse>
+#if !NET45
+            , IAsyncEnumerator<TResponse>
+#endif
         {
             private readonly CancellationToken _cancellationToken;
             private readonly TRequest _request; // This is mutated during iteration

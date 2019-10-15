@@ -17,6 +17,7 @@ using Xunit;
 using System.Threading;
 using Google.Api.Gax.Grpc.Testing;
 
+#if !NET45_CHECK
 namespace Google.Api.Gax.Grpc.Tests
 {
     public class RetryTest
@@ -366,3 +367,4 @@ namespace Google.Api.Gax.Grpc.Tests
         }
     }
 }
+#endif

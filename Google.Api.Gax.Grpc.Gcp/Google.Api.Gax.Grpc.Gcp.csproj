@@ -5,6 +5,8 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)' == 'Net45Check'">net45</TargetFrameworks>
+    <Configurations>Debug;Release;Net45Check</Configurations>
   </PropertyGroup>
 
   <!-- Packaging information -->

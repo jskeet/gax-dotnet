@@ -25,10 +25,20 @@ namespace Google.Api.Gax.Grpc
             get { throw new NotImplementedException(); }
         }
 
+#if !NET45
         /// <summary>
         /// Async stream to read streaming responses.
         /// </summary>
         public virtual IAsyncEnumerator<TResponse> ResponseStream
+        {
+            get { throw new NotImplementedException(); }
+        }
+#endif
+
+        /// <summary>
+        /// Async stream to read streaming responses (.NET 4.5 compatibility).
+        /// </summary>
+        public virtual ICompatibilityAsyncEnumerator<TResponse> CompatibilityResponseStream
         {
             get { throw new NotImplementedException(); }
         }

@@ -1,53 +1,46 @@
 ﻿/*
- * Copyright 2016 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google Inc. All Rights Reserved.
  * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file or at
  * https://developers.google.com/open-source/licenses/bsd
  */
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Google.Api.Gax
 {
-#if NET45
-    /// <summary>
-    /// An asynchronous sequence of resources obtained via API responses. Code targeting .NET 4.5 needs
-    /// to call <see cref="ToCompatibilityPagedAsyncEnumerable"/> in order to access the responses and resources.
-    /// </summary>
-    /// <typeparam name="TResponse">The API response type. Each response contains a page of resources.</typeparam>
-    /// <typeparam name="TResource">The resource type contained within the response.</typeparam>
-    public abstract class PagedAsyncEnumerable<TResponse, TResource>
-#else
-    /// <summary>
-    /// An asynchronous sequence of resources obtained via API responses. Application code
-    /// can treat this as a simple sequence (with API calls automatically being made
-    /// lazily as more results are required), or call <see cref="AsRawResponses"/> to retrieve
-    /// one API response at a time, potentially with additional information.
-    /// </summary>
-    /// <typeparam name="TResponse">The API response type. Each response contains a page of resources.</typeparam>
-    /// <typeparam name="TResource">The resource type contained within the response.</typeparam>
-    public abstract class PagedAsyncEnumerable<TResponse, TResource> : IAsyncEnumerable<TResource>
-#endif
-    {
-        /// <summary>
-        /// Returns an equivalent of this object, but in a way which can be consumed by code targeting .NET 4.5.
-        /// </summary>
-        /// <returns></returns>
-        public virtual CompatibilityPagedAsyncEnumerable<TResponse, TResource> ToCompatibilityPagedAsyncEnumerable()
-        {
-            throw new NotImplementedException();
-        }
 
-#if !NET45
+    /// <summary>TODO</summary>
+    public interface ICompatibilityAsyncEnumerator<out T>
+    {
+        /// <summary>TODO</summary>
+        T Current { get; }
+
+        /// <summary>TODO</summary>
+        ValueTask DisposeAsync();
+
+        /// <summary>TODO</summary>
+        ValueTask<bool> MoveNextAsync();
+    }
+
+    /// <summary>TODO</summary>
+    public interface ICompatibilityAsyncEnumerable<out T>
+    {
+        /// <summary>TODO</summary>
+        ICompatibilityAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default);
+    }
+
+    /// <summary>TODO</summary>
+    public abstract class CompatibilityPagedAsyncEnumerable<TResponse, TResource> : ICompatibilityAsyncEnumerable<TResource>
+    {
         /// <summary>
         /// Returns the sequence of raw API responses, each of which contributes a page of
         /// resources to this sequence.
         /// </summary>
         /// <returns>An asynchronous sequence of raw API responses, each containing a page of resources.</returns>
-        public virtual IAsyncEnumerable<TResponse> AsRawResponses()
+        public virtual ICompatibilityAsyncEnumerable<TResponse> AsRawResponses()
         {
             throw new NotImplementedException();
         }
@@ -74,10 +67,9 @@ namespace Google.Api.Gax
         }
 
         /// <inheritdoc />
-        public virtual IAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        public virtual ICompatibilityAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
-#endif
     }
 }

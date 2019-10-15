@@ -44,6 +44,11 @@ namespace Google.Api.Gax.Grpc
         }
 
         /// <inheritdoc/>
+        public override CompatibilityPagedAsyncEnumerable<TResponse, TResource> ToCompatibilityPagedAsyncEnumerable() =>
+            new GrpcCompatibilityPagedAsyncEnumerable<TRequest, TResponse, TResource>(_pages);
+
+#if !NET45
+        /// <inheritdoc/>
         public override IAsyncEnumerable<TResponse> AsRawResponses() => _pages;
 
         /// <inheritdoc/>
@@ -54,23 +59,51 @@ namespace Google.Api.Gax.Grpc
         /// <inheritdoc/>
         public override IAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
             new ResourceEnumerator<TResource, TResponse>(_pages.GetAsyncEnumerator(cancellationToken), cancellationToken);
+#endif
+    }
+
+    internal sealed class GrpcCompatibilityPagedAsyncEnumerable<TRequest, TResponse, TResource> : CompatibilityPagedAsyncEnumerable<TResponse, TResource>
+        where TRequest : class, IPageRequest, IMessage<TRequest>
+        where TResponse : class, IPageResponse<TResource>, IMessage<TResponse>
+    {
+        private readonly ResponseAsyncEnumerable<TRequest, TResponse, TResource> _pages;
+
+        internal GrpcCompatibilityPagedAsyncEnumerable(ResponseAsyncEnumerable<TRequest, TResponse, TResource> pages)
+        {
+            _pages = pages;
+        }
+
+        /// <inheritdoc/>
+        public override ICompatibilityAsyncEnumerable<TResponse> AsRawResponses() => _pages;
+
+        /// <inheritdoc/>
+        public override Task<Page<TResource>> ReadPageAsync(
+            int pageSize, CancellationToken cancellationToken = default(CancellationToken)) =>
+            _pages.GetCompletePageAsync(pageSize, cancellationToken);
+
+        /// <inheritdoc/>
+        public override ICompatibilityAsyncEnumerator<TResource> GetAsyncEnumerator(CancellationToken cancellationToken = default) =>
+            new ResourceEnumerator<TResource, TResponse>(_pages.GetAsyncEnumerator(cancellationToken), cancellationToken);
     }
 
     /// <summary>
     /// Class to effectively perform SelectMany on the pages, extracting resources.
     /// This allows us to avoid taking a dependency on System.Linq.Async.
     /// </summary>
-    internal sealed class ResourceEnumerator<TResource, TResponse> : IAsyncEnumerator<TResource>
+    internal sealed class ResourceEnumerator<TResource, TResponse> :  ICompatibilityAsyncEnumerator<TResource>
+#if !NET45
+        , IAsyncEnumerator<TResource>
+#endif
         where TResponse : IPageResponse<TResource>
     {
         private readonly CancellationToken _cancellationToken;
-        private readonly IAsyncEnumerator<TResponse> _responseEnumerator;
+        private readonly ICompatibilityAsyncEnumerator<TResponse> _responseEnumerator;
 
         public TResource Current { get; private set; }
         private IEnumerator<TResource> _currentResponse;
         private bool _finished;
 
-        internal ResourceEnumerator(IAsyncEnumerator<TResponse> responseEnumerator, CancellationToken cancellationToken)
+        internal ResourceEnumerator(ICompatibilityAsyncEnumerator<TResponse> responseEnumerator, CancellationToken cancellationToken)
         {
             _responseEnumerator = responseEnumerator;
             _cancellationToken = cancellationToken;
@@ -117,7 +150,11 @@ namespace Google.Api.Gax.Grpc
     /// <typeparam name="TRequest">The API request type.</typeparam>
     /// <typeparam name="TResponse">The API response type.</typeparam>
     /// <typeparam name="TResource">The resource type contained within the response.</typeparam>
-    internal sealed class ResponseAsyncEnumerable<TRequest, TResponse, TResource> : IAsyncEnumerable<TResponse>
+    internal sealed class ResponseAsyncEnumerable<TRequest, TResponse, TResource> : ICompatibilityAsyncEnumerable<TResponse>
+#if !NET45
+        , IAsyncEnumerable<TResponse>
+#endif
+
         where TRequest : class, IPageRequest, IMessage<TRequest>
         where TResponse : class, IPageResponse<TResource>, IMessage<TResponse>
     {
@@ -133,9 +170,18 @@ namespace Google.Api.Gax.Grpc
             _apiCall = apiCall;
         }
 
-        /// <inheritdoc />
-        public IAsyncEnumerator<TResponse> GetAsyncEnumerator(CancellationToken cancellationToken) =>
+        internal ResponseAsyncEnumerator GetAsyncEnumerator(CancellationToken cancellationToken) =>
             new ResponseAsyncEnumerator(_callSettings, _request.Clone(), _apiCall, cancellationToken);
+
+        /// <inheritdoc />
+        ICompatibilityAsyncEnumerator<TResponse> ICompatibilityAsyncEnumerable<TResponse>.GetAsyncEnumerator(CancellationToken cancellationToken) =>
+            GetAsyncEnumerator(cancellationToken);
+
+#if !NET45
+        /// <inheritdoc />
+        IAsyncEnumerator<TResponse> IAsyncEnumerable<TResponse>.GetAsyncEnumerator(CancellationToken cancellationToken) =>
+            GetAsyncEnumerator(cancellationToken);
+#endif
 
         internal async Task<Page<TResource>> GetCompletePageAsync(
             int pageSize, CancellationToken cancellationToken = default(CancellationToken))
@@ -173,7 +219,10 @@ namespace Google.Api.Gax.Grpc
             return new Page<TResource>(items, nextPageToken);
         }
 
-        private class ResponseAsyncEnumerator : IAsyncEnumerator<TResponse>
+        internal class ResponseAsyncEnumerator : ICompatibilityAsyncEnumerator<TResponse>
+#if !NET45
+            , IAsyncEnumerator<TResponse>
+#endif
         {
             private readonly CallSettings _callSettings;
             private readonly ApiCall<TRequest, TResponse> _apiCall;

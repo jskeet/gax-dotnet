@@ -17,6 +17,7 @@ using Google.Apis.Services;
 using Google.Apis.Discovery;
 using Google.Apis.Requests;
 
+#if !NET45_CHECK
 namespace Google.Api.Gax.Rest
 {
     public class PageStreamingTest
@@ -320,7 +321,7 @@ namespace Google.Api.Gax.Rest
             public Task<PageStreamingResponse> ExecuteAsync() => Server.MethodAsync(this);
             public Task<PageStreamingResponse> ExecuteAsync(CancellationToken token) => Server.MethodAsync(this);
 
-            #region Unimplemented interface methods
+#region Unimplemented interface methods
             // This is simpler than actually setting up streams and serializing/deserializing...
             public string HttpMethod { get { throw new NotImplementedException(); } }
             public string MethodName { get { throw new NotImplementedException(); } }
@@ -348,7 +349,7 @@ namespace Google.Api.Gax.Rest
             {
                 throw new NotImplementedException();
             }
-            #endregion
+#endregion
         }
 
         private class PageStreamingResponse
@@ -358,3 +359,4 @@ namespace Google.Api.Gax.Rest
         }
     }
 }
+#endif
