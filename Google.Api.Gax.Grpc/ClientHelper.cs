@@ -17,8 +17,22 @@ namespace Google.Api.Gax.Grpc
     /// </summary>
     public class ClientHelper
     {
+        private const string ApiVersionHeaderName = "x-goog-api-version";
+
         private readonly CallSettings _clientCallSettings;
         private readonly CallSettings _versionCallSettings;
+        private readonly CallSettings _apiVersionCallSettings;
+
+        private ClientHelper(IClock clock, IScheduler scheduler, ILogger logger,
+            CallSettings clientCallSettings, CallSettings versionCallSettings, CallSettings apiVersionCallSettings)
+        {
+            Clock = clock;
+            Scheduler = scheduler;
+            Logger = logger;
+            _clientCallSettings = clientCallSettings;
+            _versionCallSettings = versionCallSettings;
+            _apiVersionCallSettings = apiVersionCallSettings;
+        }
 
         /// <summary>
         /// Constructs a helper from the given settings.
@@ -26,15 +40,25 @@ namespace Google.Api.Gax.Grpc
         /// </summary>
         /// <param name="settings">The service settings.</param>
         /// <param name="logger">The logger to use for API calls</param>
-        public ClientHelper(ServiceSettingsBase settings, ILogger logger)
+        public ClientHelper(ServiceSettingsBase settings, ILogger logger) : this(
+            GaxPreconditions.CheckNotNull(settings, nameof(settings)).Clock ?? SystemClock.Instance,
+            settings.Scheduler ?? SystemScheduler.Instance,
+            logger,
+            settings.CallSettings,
+            CallSettings.FromHeader(VersionHeaderBuilder.HeaderName, settings.VersionHeader),
+            apiVersionCallSettings: null)
         {
-            GaxPreconditions.CheckNotNull(settings, nameof(settings));
-            Logger = logger;
-            Clock = settings.Clock ?? SystemClock.Instance;
-            Scheduler = settings.Scheduler ?? SystemScheduler.Instance;
-            _clientCallSettings = settings.CallSettings;
-            _versionCallSettings = CallSettings.FromHeader(VersionHeaderBuilder.HeaderName, settings.VersionHeader);
         }
+
+        /// <summary>
+        /// Constructs a new instance with the same settings as this one, but including
+        /// the specified API version in the x-goog-api-version header.
+        /// </summary>
+        /// <param name="apiVersion">The API version to send in the x-goog-api-version header. Must not be null.</param>
+        /// <returns>A new instance with the specified API version.</returns>
+        public ClientHelper WithApiVersionHeader(string apiVersion) =>
+            new(Clock, Scheduler, Logger, _clientCallSettings, _versionCallSettings,
+                CallSettings.FromHeader(ApiVersionHeaderName, GaxPreconditions.CheckNotNull(apiVersion, nameof(apiVersion))));
 
         /// <summary>
         /// The clock used for timing of retries and deadlines. This is never
@@ -79,7 +103,8 @@ namespace Google.Api.Gax.Grpc
             return ApiCall.Create(methodName, asyncGrpcCall, syncGrpcCall, baseCallSettings, Clock)
                 .WithLogging(Logger)
                 .WithRetry(Clock, Scheduler, Logger)
-                .WithMergedBaseCallSettings(_versionCallSettings);
+                .WithMergedBaseCallSettings(_versionCallSettings)
+                .WithMergedBaseCallSettings(_apiVersionCallSettings);
         }
 
         /// <summary>
@@ -102,7 +127,8 @@ namespace Google.Api.Gax.Grpc
             // I.e. Version header is added first, then retry is performed.
             return ApiServerStreamingCall.Create(methodName, grpcCall, baseCallSettings, Clock)
                 .WithLogging(Logger)
-                .WithMergedBaseCallSettings(_versionCallSettings);
+                .WithMergedBaseCallSettings(_versionCallSettings)
+                .WithMergedBaseCallSettings(_apiVersionCallSettings);
         }
 
         /// <summary>
@@ -126,7 +152,8 @@ namespace Google.Api.Gax.Grpc
             CallSettings baseCallSettings = _clientCallSettings.MergedWith(perMethodCallSettings);
             return ApiBidirectionalStreamingCall.Create(methodName, grpcCall, baseCallSettings, streamingSettings, Clock)
                 .WithLogging(Logger)
-                .WithMergedBaseCallSettings(_versionCallSettings);
+                .WithMergedBaseCallSettings(_versionCallSettings)
+                .WithMergedBaseCallSettings(_apiVersionCallSettings);
         }
 
         /// <summary>
@@ -150,7 +177,8 @@ namespace Google.Api.Gax.Grpc
             CallSettings baseCallSettings = _clientCallSettings.MergedWith(perMethodCallSettings);
             return ApiClientStreamingCall.Create(methodName, grpcCall, baseCallSettings, streamingSettings, Clock)
                 .WithLogging(Logger)
-                .WithMergedBaseCallSettings(_versionCallSettings);
+                .WithMergedBaseCallSettings(_versionCallSettings)
+                .WithMergedBaseCallSettings(_apiVersionCallSettings);
         }
     }
 }

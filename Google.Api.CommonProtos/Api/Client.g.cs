@@ -96,13 +96,14 @@ namespace Google.Api {
             "OjkKEG1ldGhvZF9zaWduYXR1cmUSHi5nb29nbGUucHJvdG9idWYuTWV0aG9k",
             "T3B0aW9ucxibCCADKAk6NgoMZGVmYXVsdF9ob3N0Eh8uZ29vZ2xlLnByb3Rv",
             "YnVmLlNlcnZpY2VPcHRpb25zGJkIIAEoCTo2CgxvYXV0aF9zY29wZXMSHy5n",
-            "b29nbGUucHJvdG9idWYuU2VydmljZU9wdGlvbnMYmgggASgJQmkKDmNvbS5n",
-            "b29nbGUuYXBpQgtDbGllbnRQcm90b1ABWkFnb29nbGUuZ29sYW5nLm9yZy9n",
-            "ZW5wcm90by9nb29nbGVhcGlzL2FwaS9hbm5vdGF0aW9uczthbm5vdGF0aW9u",
-            "c6ICBEdBUEliBnByb3RvMw=="));
+            "b29nbGUucHJvdG9idWYuU2VydmljZU9wdGlvbnMYmgggASgJOjgKC2FwaV92",
+            "ZXJzaW9uEh8uZ29vZ2xlLnByb3RvYnVmLlNlcnZpY2VPcHRpb25zGMG6q/oB",
+            "IAEoCUJpCg5jb20uZ29vZ2xlLmFwaUILQ2xpZW50UHJvdG9QAVpBZ29vZ2xl",
+            "LmdvbGFuZy5vcmcvZ2VucHJvdG8vZ29vZ2xlYXBpcy9hcGkvYW5ub3RhdGlv",
+            "bnM7YW5ub3RhdGlvbnOiAgRHQVBJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Api.LaunchStageReflection.Descriptor, global::Google.Protobuf.Reflection.DescriptorReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.DurationReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Google.Api.ClientLibraryOrganization), typeof(global::Google.Api.ClientLibraryDestination), }, new pb::Extension[] { ClientExtensions.MethodSignature, ClientExtensions.DefaultHost, ClientExtensions.OauthScopes }, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Google.Api.ClientLibraryOrganization), typeof(global::Google.Api.ClientLibraryDestination), }, new pb::Extension[] { ClientExtensions.MethodSignature, ClientExtensions.DefaultHost, ClientExtensions.OauthScopes, ClientExtensions.ApiVersion }, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Google.Api.CommonLanguageSettings), global::Google.Api.CommonLanguageSettings.Parser, new[]{ "ReferenceDocsUri", "Destinations" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Google.Api.ClientLibrarySettings), global::Google.Api.ClientLibrarySettings.Parser, new[]{ "Version", "LaunchStage", "RestNumericEnums", "JavaSettings", "CppSettings", "PhpSettings", "PythonSettings", "NodeSettings", "DotnetSettings", "RubySettings", "GoSettings" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Google.Api.Publishing), global::Google.Api.Publishing.Parser, new[]{ "MethodSettings", "NewIssueUri", "DocumentationUri", "ApiShortName", "GithubLabel", "CodeownerGithubTeams", "DocTagPrefix", "Organization", "LibrarySettings", "ProtoReferenceDocumentationUri" }, null, null, null, null),
@@ -198,6 +199,23 @@ namespace Google.Api {
     /// </summary>
     public static readonly pb::Extension<global::Google.Protobuf.Reflection.ServiceOptions, string> OauthScopes =
       new pb::Extension<global::Google.Protobuf.Reflection.ServiceOptions, string>(1050, pb::FieldCodec.ForString(8402, ""));
+    /// <summary>
+    /// The API version of this service, which should be sent by version-aware
+    /// clients to the service. This allows services to abide by the schema and
+    /// behavior of the service at the time this API version was deployed.
+    /// The format of the API version must be treated as opaque by clients.
+    /// Services may use a format with an apparent structure, but clients must
+    /// not rely on this to determine components within an API version, or attempt
+    /// to construct other valid API versions.
+    ///
+    /// Example:
+    ///
+    ///   service Foo {
+    ///     option (google.api.api_version) = "v1_20230821_preview";
+    ///   }
+    /// </summary>
+    public static readonly pb::Extension<global::Google.Protobuf.Reflection.ServiceOptions, string> ApiVersion =
+      new pb::Extension<global::Google.Protobuf.Reflection.ServiceOptions, string>(525000001, pb::FieldCodec.ForString(4200000010, ""));
   }
 
   #region Enums
